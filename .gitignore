@@ -1,6 +1,12 @@
 # build output
 dist/
 
+# astro generated
+.astro/
+
+# test exports
+themeforge-export/
+
 # dependencies
 node_modules/
 

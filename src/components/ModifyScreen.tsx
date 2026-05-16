@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useThemeStore } from "@/stores/themeStore";
 import { ArrowLeft, Loader2, Wand2 } from "lucide-react";
 import { parseAIError } from "@/lib/errors";
+import { buildFlutterTheme } from "@/lib/flutterTheme";
+import { buildBundleHtml } from "@/lib/bundleHtml";
 
 const changePoints = [
   "color",
@@ -60,20 +62,27 @@ export default function ModifyScreen() {
           apiKey,
           textModel
         );
+        useThemeStore.setState({ theme: updatedTheme });
       }
 
       if (modifyScope === "image" || modifyScope === "all") {
         setGenerationStep(3);
         updatedImageUrl = await generateShowcaseImage(updatedTheme, apiKey, imageModel);
+        useThemeStore.setState({ imageUrl: updatedImageUrl });
       }
 
       setGenerationStep(5);
       const designMd = buildDesignMd(updatedTheme);
+      const flutterTheme = buildFlutterTheme(updatedTheme);
+      const bundleHtml = buildBundleHtml(updatedTheme);
+      useThemeStore.setState({ designMd, flutterTheme, bundleHtml });
 
       updateResult(
         updatedTheme,
         modifyScope === "tokens" ? imageUrl : updatedImageUrl,
-        designMd
+        designMd,
+        flutterTheme,
+        bundleHtml
       );
     } catch (err) {
       const message = parseAIError(err);

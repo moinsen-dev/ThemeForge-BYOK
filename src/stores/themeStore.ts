@@ -13,7 +13,7 @@ export interface AppState {
     description: string;
     productType: string;
     mood: string;
-    outputs: { image: boolean; json: boolean; designMd: boolean };
+    outputs: { image: boolean; json: boolean; designMd: boolean; flutter: boolean; bundle: boolean };
   };
 
   apiKey: string;
@@ -25,6 +25,8 @@ export interface AppState {
   theme: Theme | null;
   imageUrl: string | null;
   designMd: string | null;
+  flutterTheme: string | null;
+  bundleHtml: string | null;
 
   modifyAspect: string | null;
   modifyInstruction: string;
@@ -41,8 +43,8 @@ export interface AppActions {
   setRememberApiKey: (remember: boolean) => void;
   setGenerationStep: (step: number) => void;
   setGenerationError: (error: string | null) => void;
-  setResult: (theme: Theme, imageUrl: string | null, designMd: string) => void;
-  updateResult: (theme: Theme, imageUrl: string | null, designMd: string) => void;
+  setResult: (theme: Theme, imageUrl: string | null, designMd: string, flutterTheme?: string, bundleHtml?: string) => void;
+  updateResult: (theme: Theme, imageUrl: string | null, designMd: string, flutterTheme?: string, bundleHtml?: string) => void;
   setModifyAspect: (aspect: string | null) => void;
   setModifyInstruction: (instruction: string) => void;
   setModifyScope: (scope: ModifyScope) => void;
@@ -57,7 +59,7 @@ const initialState: AppState = {
     description: "",
     productType: "",
     mood: "",
-    outputs: { image: true, json: true, designMd: true },
+    outputs: { image: true, json: true, designMd: true, flutter: false, bundle: false },
   },
   apiKey: "",
   rememberApiKey: false,
@@ -66,6 +68,8 @@ const initialState: AppState = {
   theme: null,
   imageUrl: null,
   designMd: null,
+  flutterTheme: null,
+  bundleHtml: null,
   modifyAspect: null,
   modifyInstruction: "",
   modifyScope: "all",
@@ -93,21 +97,25 @@ export const useThemeStore = create<AppState & AppActions>()(
 
       setGenerationError: (generationError) => set({ generationError }),
 
-      setResult: (theme, imageUrl, designMd) =>
+      setResult: (theme, imageUrl, designMd, flutterTheme, bundleHtml) =>
         set({
           theme,
           imageUrl,
           designMd,
+          flutterTheme: flutterTheme ?? null,
+          bundleHtml: bundleHtml ?? null,
           screen: "result",
           generationStep: 0,
           generationError: null,
         }),
 
-      updateResult: (theme, imageUrl, designMd) =>
+      updateResult: (theme, imageUrl, designMd, flutterTheme, bundleHtml) =>
         set({
           theme,
           imageUrl,
           designMd,
+          flutterTheme: flutterTheme ?? null,
+          bundleHtml: bundleHtml ?? null,
           screen: "result",
           generationStep: 0,
           generationError: null,
@@ -134,6 +142,8 @@ export const useThemeStore = create<AppState & AppActions>()(
         theme: state.theme,
         imageUrl: state.imageUrl,
         designMd: state.designMd,
+        flutterTheme: state.flutterTheme,
+        bundleHtml: state.bundleHtml,
         inputs: state.inputs,
         textModel: state.textModel,
         imageModel: state.imageModel,

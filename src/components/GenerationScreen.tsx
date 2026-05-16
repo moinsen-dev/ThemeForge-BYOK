@@ -1,5 +1,6 @@
 import { useThemeStore } from "@/stores/themeStore";
-import { Loader2, Check, AlertCircle, X } from "lucide-react";
+import { Loader2, Check, AlertCircle, X, ChevronDown, ChevronUp } from "lucide-react";
+import { useState } from "react";
 
 const steps = [
   "Extracting design tokens",
@@ -10,8 +11,10 @@ const steps = [
 ];
 
 export default function GenerationScreen() {
-  const { generationStep, generationError, setScreen, reset } =
+  const { generationStep, generationError, theme, imageUrl, designMd, flutterTheme, bundleHtml, setScreen, reset } =
     useThemeStore();
+
+  const [showPreview, setShowPreview] = useState(true);
 
   if (generationError) {
     return (
@@ -48,8 +51,8 @@ export default function GenerationScreen() {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-neutral-200 flex items-center justify-center px-4">
-      <div className="w-full max-w-md space-y-8">
+    <div className="min-h-screen bg-neutral-950 text-neutral-200 flex items-start justify-center px-4 py-12">
+      <div className="w-full max-w-2xl space-y-6">
         <div className="text-center space-y-2">
           <div className="flex justify-center mb-4">
             <Loader2 className="w-8 h-8 text-red-500 animate-spin" />
@@ -58,7 +61,7 @@ export default function GenerationScreen() {
             Generating visual identity...
           </h2>
           <p className="text-sm text-neutral-500">
-            This may take 30–60 seconds depending on the model.
+            Each step takes 30–90 seconds. Total time: 2–5 minutes.
           </p>
         </div>
 
@@ -80,7 +83,7 @@ export default function GenerationScreen() {
                 }`}
               >
                 <div
-                  className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
+                  className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium shrink-0 ${
                     isDone
                       ? "bg-red-500/20 text-red-400"
                       : isActive
@@ -105,6 +108,156 @@ export default function GenerationScreen() {
             );
           })}
         </div>
+
+        {/* Live Preview */}
+        {theme && (
+          <div className="border border-neutral-800 rounded-lg overflow-hidden">
+            <button
+              onClick={() => setShowPreview(!showPreview)}
+              className="w-full flex items-center justify-between px-4 py-3 bg-neutral-900 hover:bg-neutral-800 transition-colors"
+            >
+              <span className="text-sm font-medium text-white">Live Preview</span>
+              {showPreview ? (
+                <ChevronUp className="w-4 h-4 text-neutral-500" />
+              ) : (
+                <ChevronDown className="w-4 h-4 text-neutral-500" />
+              )}
+            </button>
+
+            {showPreview && (
+              <div className="px-4 py-4 space-y-5 bg-neutral-950">
+                {/* Theme Name & Mood */}
+                <div>
+                  <h3 className="text-sm font-semibold text-white">
+                    {theme.meta.name}
+                  </h3>
+                  <div className="flex flex-wrap gap-1.5 mt-1.5">
+                    {theme.identity.moodKeywords.map((k) => (
+                      <span
+                        key={k}
+                        className="px-2 py-0.5 text-[10px] uppercase tracking-wider bg-neutral-800 text-neutral-400 rounded"
+                      >
+                        {k}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Color Palette */}
+                <div className="space-y-1.5">
+                  <p className="text-[10px] uppercase tracking-wider text-neutral-500">
+                    Color Palette
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {Object.entries(theme.tokens.colors).map(([name, value]) => (
+                      <div key={name} className="flex items-center gap-1.5">
+                        <div
+                          className="w-5 h-5 rounded border border-neutral-700"
+                          style={{ backgroundColor: value }}
+                        />
+                        <span className="text-[10px] text-neutral-500">{name}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Typography */}
+                <div className="space-y-1.5">
+                  <p className="text-[10px] uppercase tracking-wider text-neutral-500">
+                    Typography
+                  </p>
+                  <div className="flex gap-3 text-xs text-neutral-400">
+                    <span>Display: {theme.tokens.typography.displayFont}</span>
+                    <span>Body: {theme.tokens.typography.bodyFont}</span>
+                    <span>Mono: {theme.tokens.typography.monoFont}</span>
+                  </div>
+                </div>
+
+                {/* Image Prompt */}
+                {generationStep >= 2 && (
+                  <div className="space-y-1.5">
+                    <p className="text-[10px] uppercase tracking-wider text-neutral-500">
+                      Image Prompt
+                    </p>
+                    <p className="text-xs text-neutral-400 line-clamp-4">
+                      {theme.imagePrompt.positive}
+                    </p>
+                  </div>
+                )}
+
+                {/* Generated Image */}
+                {imageUrl && generationStep >= 3 && (
+                  <div className="space-y-1.5">
+                    <p className="text-[10px] uppercase tracking-wider text-neutral-500">
+                      Showcase Image
+                    </p>
+                    <img
+                      src={imageUrl}
+                      alt="Generated showcase"
+                      className="w-full rounded-md border border-neutral-800"
+                    />
+                  </div>
+                )}
+
+                {/* JSON Preview */}
+                {generationStep >= 4 && (
+                  <div className="space-y-1.5">
+                    <p className="text-[10px] uppercase tracking-wider text-neutral-500">
+                      JSON Preview
+                    </p>
+                    <pre className="p-2 bg-neutral-900 rounded-md text-[10px] text-neutral-400 overflow-auto max-h-32 font-mono">
+                      {JSON.stringify(theme, null, 2).slice(0, 800)}
+                      {JSON.stringify(theme, null, 2).length > 800 ? "..." : ""}
+                    </pre>
+                  </div>
+                )}
+
+                {/* DESIGN.md Preview */}
+                {designMd && generationStep >= 5 && (
+                  <div className="space-y-1.5">
+                    <p className="text-[10px] uppercase tracking-wider text-neutral-500">
+                      DESIGN.md Preview
+                    </p>
+                    <pre className="p-2 bg-neutral-900 rounded-md text-[10px] text-neutral-400 overflow-auto max-h-32 font-mono whitespace-pre-wrap">
+                      {designMd.slice(0, 800)}
+                      {designMd.length > 800 ? "..." : ""}
+                    </pre>
+                  </div>
+                )}
+
+                {/* Flutter Theme Preview */}
+                {flutterTheme && generationStep >= 5 && (
+                  <div className="space-y-1.5">
+                    <p className="text-[10px] uppercase tracking-wider text-neutral-500">
+                      Flutter Theme Preview
+                    </p>
+                    <pre className="p-2 bg-neutral-900 rounded-md text-[10px] text-neutral-400 overflow-auto max-h-32 font-mono">
+                      {flutterTheme.slice(0, 800)}
+                      {flutterTheme.length > 800 ? "..." : ""}
+                    </pre>
+                  </div>
+                )}
+
+                {/* Bundle HTML Preview */}
+                {bundleHtml && generationStep >= 5 && (
+                  <div className="space-y-1.5">
+                    <p className="text-[10px] uppercase tracking-wider text-neutral-500">
+                      Bundle HTML Preview
+                    </p>
+                    <div className="border border-neutral-800 rounded-md overflow-hidden">
+                      <iframe
+                        srcDoc={bundleHtml}
+                        title="Design System Demo"
+                        className="w-full h-48 bg-white"
+                        sandbox="allow-same-origin"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
         <button
           onClick={() => setScreen("start")}

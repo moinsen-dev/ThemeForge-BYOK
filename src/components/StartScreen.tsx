@@ -1,6 +1,8 @@
 import { useThemeStore } from "@/stores/themeStore";
 import { useState } from "react";
 import { Wand2, Key, Eye, EyeOff, Settings2 } from "lucide-react";
+import { buildFlutterTheme } from "@/lib/flutterTheme";
+import { buildBundleHtml } from "@/lib/bundleHtml";
 import { parseAIError } from "@/lib/errors";
 
 export default function StartScreen() {
@@ -53,19 +55,24 @@ export default function StartScreen() {
       );
 
       setGenerationStep(2);
+      useThemeStore.setState({ theme });
 
       let imageUrl: string | null = null;
       if (inputs.outputs.image) {
         setGenerationStep(3);
         imageUrl = await generateShowcaseImage(theme, apiKey, imageModel);
+        useThemeStore.setState({ imageUrl });
       }
 
       setGenerationStep(4);
 
       setGenerationStep(5);
       const designMd = buildDesignMd(theme);
+      const flutterTheme = inputs.outputs.flutter ? buildFlutterTheme(theme) : "";
+      const bundleHtml = inputs.outputs.bundle ? buildBundleHtml(theme) : "";
+      useThemeStore.setState({ designMd, flutterTheme, bundleHtml });
 
-      setResult(theme, imageUrl, designMd);
+      setResult(theme, imageUrl, designMd, flutterTheme, bundleHtml);
     } catch (err) {
       const message = parseAIError(err);
       console.error("Generation error:", err);
@@ -143,6 +150,8 @@ export default function StartScreen() {
                   ["image", "Image"],
                   ["json", "JSON"],
                   ["designMd", "DESIGN.md"],
+                  ["flutter", "Flutter Theme"],
+                  ["bundle", "Bundle HTML"],
                 ] as const
               ).map(([key, label]) => (
                 <label
@@ -216,6 +225,31 @@ export default function StartScreen() {
             <Wand2 className="w-4 h-4" />
             {isLoading ? "Starting..." : "Generate Theme"}
           </button>
+
+          <div className="text-center space-y-1 pt-4 border-t border-neutral-800">
+            <p className="text-xs text-neutral-500">
+              Built from an experiment by{" "}
+              <a
+                href="https://github.com/moinsen-dev"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-neutral-400 hover:text-white transition-colors underline underline-offset-2"
+              >
+                Moinsen development Hamburg
+              </a>
+            </p>
+            <p className="text-[10px] text-neutral-600">
+              © 2026 Ulrich Diedrichsen · Free to use · No tracking · No spy software ·{" "}
+              <a
+                href="https://github.com/moinsen-dev/ThemeForge-BYOK"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-neutral-500 hover:text-neutral-400 transition-colors underline underline-offset-2"
+              >
+                Open Source on GitHub
+              </a>
+            </p>
+          </div>
 
           <button
             onClick={() => setShowAdvanced(!showAdvanced)}

@@ -13,18 +13,22 @@ import {
   ArrowLeft,
   Package,
   Check,
+  Code,
+  Globe,
 } from "lucide-react";
 import {
   downloadThemeJson,
   downloadDesignMd,
   downloadImage,
+  downloadFlutterTheme,
+  downloadBundleHtml,
   buildZip,
 } from "@/lib/download";
 
 type Tab = "preview" | "json" | "designmd";
 
 export default function ResultScreen() {
-  const { theme, imageUrl, designMd, setScreen, inputs, apiKey } =
+  const { theme, imageUrl, designMd, flutterTheme, bundleHtml, setScreen, inputs, apiKey } =
     useThemeStore();
   const [activeTab, setActiveTab] = useState<Tab>("preview");
   const [downloading, setDownloading] = useState(false);
@@ -129,6 +133,24 @@ export default function ResultScreen() {
               <FileText className="w-4 h-4" />
               Download DESIGN.md
             </button>
+            {flutterTheme && (
+              <button
+                onClick={() => downloadFlutterTheme(flutterTheme)}
+                className="flex items-center gap-1.5 px-3 py-2 text-sm bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-neutral-300 rounded-md transition-colors"
+              >
+                <Code className="w-4 h-4" />
+                Download app_theme.dart
+              </button>
+            )}
+            {bundleHtml && (
+              <button
+                onClick={() => downloadBundleHtml(bundleHtml)}
+                className="flex items-center gap-1.5 px-3 py-2 text-sm bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-neutral-300 rounded-md transition-colors"
+              >
+                <Globe className="w-4 h-4" />
+                Download Demo HTML
+              </button>
+            )}
             <button
               onClick={async () => {
                 await navigator.clipboard.writeText(theme.imagePrompt.positive);

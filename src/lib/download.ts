@@ -1,4 +1,7 @@
+import JSZip from "jszip";
 import type { Theme } from "./schema";
+import { buildFlutterTheme } from "./flutterTheme";
+import { buildBundleHtml } from "./bundleHtml";
 
 export function downloadFile(
   content: string | Blob,
@@ -32,6 +35,14 @@ export function downloadPrompt(theme: Theme): void {
   downloadFile(theme.imagePrompt.positive, "prompt.txt", "text/plain");
 }
 
+export function downloadFlutterTheme(flutterTheme: string): void {
+  downloadFile(flutterTheme, "app_theme.dart", "text/plain");
+}
+
+export function downloadBundleHtml(bundleHtml: string): void {
+  downloadFile(bundleHtml, "design-system-demo.html", "text/html");
+}
+
 export function downloadImage(dataUrl: string, filename = "image.png"): void {
   fetch(dataUrl)
     .then((res) => res.blob())
@@ -43,11 +54,12 @@ export async function buildZip(
   imageDataUrl: string | null,
   designMd: string
 ): Promise<Blob> {
-  const JSZip = (await import("jszip")).default;
   const zip = new JSZip();
 
   zip.file("theme.json", JSON.stringify(theme, null, 2));
   zip.file("DESIGN.md", designMd);
+  zip.file("app_theme.dart", buildFlutterTheme(theme));
+  zip.file("design-system-demo.html", buildBundleHtml(theme));
   zip.file("prompt.txt", theme.imagePrompt.positive);
 
   if (imageDataUrl) {
