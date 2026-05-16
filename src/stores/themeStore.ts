@@ -34,6 +34,8 @@ export interface AppState {
 
   textModel: string;
   imageModel: string;
+
+  themeMode: "light" | "dark" | "auto";
 }
 
 export interface AppActions {
@@ -50,6 +52,7 @@ export interface AppActions {
   setModifyScope: (scope: ModifyScope) => void;
   setTextModel: (model: string) => void;
   setImageModel: (model: string) => void;
+  setThemeMode: (mode: "light" | "dark" | "auto") => void;
   reset: () => void;
 }
 
@@ -75,6 +78,7 @@ const initialState: AppState = {
   modifyScope: "all",
   textModel: "gpt-5.5",
   imageModel: "gpt-image-2",
+  themeMode: "auto",
 };
 
 export const useThemeStore = create<AppState & AppActions>()(
@@ -131,6 +135,8 @@ export const useThemeStore = create<AppState & AppActions>()(
 
       setImageModel: (imageModel) => set({ imageModel }),
 
+      setThemeMode: (themeMode) => set({ themeMode }),
+
       reset: () => set(initialState),
     }),
     {
@@ -147,6 +153,7 @@ export const useThemeStore = create<AppState & AppActions>()(
         inputs: state.inputs,
         textModel: state.textModel,
         imageModel: state.imageModel,
+        themeMode: state.themeMode,
       }),
     }
   )

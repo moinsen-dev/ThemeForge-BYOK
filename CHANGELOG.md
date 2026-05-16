@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Light / Dark / Auto Mode Support** — Themes now generate dual color palettes:
+  - `tokens.colors` — light-mode palette
+  - `tokens.colorsDark` — dark-mode palette
+  - Theme mode selector in StartScreen Advanced Settings (Light / Dark / Auto)
+  - Theme mode toggle in ResultScreen header for live preview switching
+  - `ThemePreview` renders using the actual generated palette colors for the selected mode
+  - Flutter `app_theme.dart` exports `_AppThemeLight`, `_AppThemeDark`, and a unified `AppTheme` class:
+    - `AppTheme.lightThemeData` / `AppTheme.darkThemeData`
+    - `AppTheme.themeData(Brightness)` for explicit mode selection
+    - `AppTheme.of(BuildContext)` for automatic system brightness adaptation
+  - HTML bundle includes `prefers-color-scheme` support, manual toggle bar, and localStorage persistence
+  - Graceful fallback to light palette for legacy themes missing `colorsDark`
 - **Flutter Theme Export** — Generates a ready-to-use `app_theme.dart` file with:
   - `ThemeData` configured for dark mode
   - `ColorScheme` from generated color tokens

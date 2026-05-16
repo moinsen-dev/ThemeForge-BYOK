@@ -15,6 +15,9 @@ import {
   Check,
   Code,
   Globe,
+  Sun,
+  Moon,
+  Monitor,
 } from "lucide-react";
 import {
   downloadThemeJson,
@@ -28,7 +31,7 @@ import {
 type Tab = "preview" | "json" | "designmd";
 
 export default function ResultScreen() {
-  const { theme, imageUrl, designMd, flutterTheme, bundleHtml, setScreen, inputs, apiKey } =
+  const { theme, imageUrl, designMd, flutterTheme, bundleHtml, themeMode, setScreen, setThemeMode, inputs, apiKey } =
     useThemeStore();
   const [activeTab, setActiveTab] = useState<Tab>("preview");
   const [downloading, setDownloading] = useState(false);
@@ -70,13 +73,37 @@ export default function ResultScreen() {
               {theme.identity.moodKeywords.join(" · ")}
             </p>
           </div>
-          <button
-            onClick={() => setScreen("start")}
-            className="flex items-center gap-1.5 text-sm text-neutral-500 hover:text-neutral-300 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            New Theme
-          </button>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1 bg-neutral-900 border border-neutral-800 rounded-md p-0.5">
+              {(
+                [
+                  ["light", Sun],
+                  ["dark", Moon],
+                  ["auto", Monitor],
+                ] as const
+              ).map(([mode, Icon]) => (
+                <button
+                  key={mode}
+                  onClick={() => setThemeMode(mode)}
+                  title={mode.charAt(0).toUpperCase() + mode.slice(1)}
+                  className={`p-1.5 rounded transition-colors ${
+                    themeMode === mode
+                      ? "bg-neutral-700 text-white"
+                      : "text-neutral-500 hover:text-neutral-300"
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => setScreen("start")}
+              className="flex items-center gap-1.5 text-sm text-neutral-500 hover:text-neutral-300 transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              New Theme
+            </button>
+          </div>
         </div>
 
         {/* Tabs */}
@@ -99,7 +126,7 @@ export default function ResultScreen() {
         {/* Content */}
         <div className="min-h-[400px]">
           {activeTab === "preview" && (
-            <ThemePreview theme={theme} imageUrl={imageUrl} />
+            <ThemePreview theme={theme} imageUrl={imageUrl} mode={themeMode} />
           )}
           {activeTab === "json" && (
             <JsonView json={JSON.stringify(theme, null, 2)} />

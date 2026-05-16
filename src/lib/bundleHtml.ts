@@ -2,6 +2,8 @@ import type { Theme } from "./schema";
 
 export function buildBundleHtml(theme: Theme): string {
   const { meta, identity, tokens } = theme;
+  const dark = tokens.colorsDark ?? tokens.colors;
+  const hasDarkPalette = !!tokens.colorsDark;
 
   const css = `
     :root {
@@ -27,6 +29,32 @@ export function buildBundleHtml(theme: Theme): string {
       --radius-md: ${tokens.radius.md};
       --radius-lg: ${tokens.radius.lg};
     }
+    [data-theme="dark"] {
+      --bg-primary: ${dark.backgroundPrimary};
+      --bg-secondary: ${dark.backgroundSecondary};
+      --surface: ${dark.surface};
+      --border: ${dark.border};
+      --text-primary: ${dark.textPrimary};
+      --text-secondary: ${dark.textSecondary};
+      --accent: ${dark.accent};
+      --success: ${dark.success};
+      --warning: ${dark.warning};
+      --danger: ${dark.danger};
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg-primary: ${dark.backgroundPrimary};
+        --bg-secondary: ${dark.backgroundSecondary};
+        --surface: ${dark.surface};
+        --border: ${dark.border};
+        --text-primary: ${dark.textPrimary};
+        --text-secondary: ${dark.textSecondary};
+        --accent: ${dark.accent};
+        --success: ${dark.success};
+        --warning: ${dark.warning};
+        --danger: ${dark.danger};
+      }
+    }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: var(--font-body);
@@ -34,6 +62,46 @@ export function buildBundleHtml(theme: Theme): string {
       color: var(--text-primary);
       line-height: 1.6;
       min-height: 100vh;
+      transition: background 0.2s, color 0.2s;
+    }
+    .theme-bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: var(--space-sm);
+      padding: var(--space-sm) var(--space-xl);
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(8px);
+    }
+    .theme-bar label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-secondary);
+    }
+    .theme-bar button {
+      padding: var(--space-xs) var(--space-sm);
+      font-size: 0.75rem;
+      font-family: var(--font-body);
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .theme-bar button:hover {
+      color: var(--text-primary);
+      border-color: var(--text-secondary);
+    }
+    .theme-bar button.active {
+      background: var(--accent);
+      color: var(--bg-primary);
+      border-color: var(--accent);
     }
     .container { max-width: 1200px; margin: 0 auto; padding: var(--space-xl); }
     header {
@@ -236,6 +304,15 @@ export function buildBundleHtml(theme: Theme): string {
       flex-shrink: 0;
     }
     .principles li:last-child { border-bottom: none; }
+    .legacy-note {
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      padding: var(--space-xs) var(--space-sm);
+      background: color-mix(in srgb, var(--warning) 8%, transparent);
+      border: 1px solid var(--warning);
+      border-radius: var(--radius-sm);
+      margin-top: var(--space-sm);
+    }
   `.trim();
 
   const colors = Object.entries(tokens.colors)
@@ -251,6 +328,21 @@ export function buildBundleHtml(theme: Theme): string {
     )
     .join("");
 
+  const darkColors = hasDarkPalette
+    ? Object.entries(dark)
+        .map(
+          ([name, value]) => `
+            <div class="color-swatch">
+              <div class="color-block" style="background:${value}"></div>
+              <div class="color-info">
+                <div class="color-name">${name.replace(/([A-Z])/g, " $1").trim()}</div>
+                <div>${value}</div>
+              </div>
+            </div>`
+        )
+        .join("")
+    : "";
+
   const principles = identity.designPrinciples
     .map((p) => `<li>${p}</li>`)
     .join("");
@@ -258,6 +350,16 @@ export function buildBundleHtml(theme: Theme): string {
   const moodTags = identity.moodKeywords
     .map((k) => `<span class="mood-tag">${k}</span>`)
     .join("");
+
+  const legacyNote = !hasDarkPalette
+    ? `<div class="legacy-note">Dark palette not available for this legacy theme. Dark mode uses the light palette as a fallback.</div>`
+    : "";
+
+  const darkPaletteSection = hasDarkPalette
+    ? `
+  <h2>Dark Color Palette</h2>
+  <div class="color-grid">${darkColors}</div>`
+    : "";
 
   const html = `<!DOCTYPE html>
 <html lang="en">
@@ -268,15 +370,23 @@ export function buildBundleHtml(theme: Theme): string {
 <style>${css}</style>
 </head>
 <body>
+<div class="theme-bar">
+  <label>Theme</label>
+  <button id="btn-light" onclick="setTheme('light')">Light</button>
+  <button id="btn-dark" onclick="setTheme('dark')">Dark</button>
+  <button id="btn-auto" onclick="setTheme('auto')">Auto</button>
+</div>
 <div class="container">
   <header>
     <h1>${escapeHtml(meta.name)}</h1>
     <p class="subtitle">${escapeHtml(identity.summary)}</p>
     <div class="mood-tags">${moodTags}</div>
+    ${legacyNote}
   </header>
 
   <h2>Color Palette</h2>
   <div class="color-grid">${colors}</div>
+  ${darkPaletteSection}
 
   <h2>Typography</h2>
   <div class="grid">
@@ -374,6 +484,29 @@ export function buildBundleHtml(theme: Theme): string {
     <p style="margin-top:var(--space-sm)">${escapeHtml(identity.moodKeywords.join(" · "))}</p>
   </footer>
 </div>
+<script>
+  (function() {
+    const root = document.documentElement;
+    const stored = localStorage.getItem('themeforge-demo-theme');
+    function setTheme(mode) {
+      if (mode === 'auto') {
+        root.removeAttribute('data-theme');
+        localStorage.removeItem('themeforge-demo-theme');
+      } else {
+        root.setAttribute('data-theme', mode);
+        localStorage.setItem('themeforge-demo-theme', mode);
+      }
+      updateButtons(mode);
+    }
+    function updateButtons(mode) {
+      document.getElementById('btn-light').classList.toggle('active', mode === 'light');
+      document.getElementById('btn-dark').classList.toggle('active', mode === 'dark');
+      document.getElementById('btn-auto').classList.toggle('active', mode === 'auto');
+    }
+    window.setTheme = setTheme;
+    setTheme(stored || 'auto');
+  })();
+</script>
 </body>
 </html>`;
 

@@ -20,7 +20,12 @@ Structure the image prompt with these sections:
 - Aspect ratio: 16:9
 - Negative prompt (cartoon, anime, consumer SaaS, bright gradients, playful UI, mobile app mockup, social media design, glassmorphism, pastel colors, 3D toy rendering, low detail, messy layout, cyberpunk clutter, retro gaming UI, comic style, overexposed lighting)
 
-Generate the complete positive prompt as a single flowing paragraph (not bullet points) that an image generation model can consume directly. Make it dense and detailed.`;
+Generate the complete positive prompt as a single flowing paragraph (not bullet points) that an image generation model can consume directly. Make it dense and detailed.
+
+For colors, you MUST generate TWO complete, accessible color palettes:
+- tokens.colors — the light-mode palette: light backgrounds, dark text, subtle borders. Ensure high contrast and readability.
+- tokens.colorsDark — the dark-mode palette: dark backgrounds, light text, slightly brighter borders. Keep the same accent, success, warning, and danger hues as the light palette for brand consistency, but adjust their saturation/lightness so they remain vibrant against dark surfaces.
+Both palettes must include all 10 color tokens (backgroundPrimary, backgroundSecondary, surface, border, textPrimary, textSecondary, accent, success, warning, danger).`;
 
 export const MODIFICATION_SYSTEM_PROMPT = `You are a visual identity modification engine.
 You will receive an existing design system theme and a single modification request.

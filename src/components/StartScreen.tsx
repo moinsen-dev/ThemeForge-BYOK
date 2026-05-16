@@ -1,6 +1,6 @@
 import { useThemeStore } from "@/stores/themeStore";
 import { useState } from "react";
-import { Wand2, Key, Eye, EyeOff, Settings2 } from "lucide-react";
+import { Wand2, Key, Eye, EyeOff, Settings2, Sun, Moon, Monitor } from "lucide-react";
 import { buildFlutterTheme } from "@/lib/flutterTheme";
 import { buildBundleHtml } from "@/lib/bundleHtml";
 import { parseAIError } from "@/lib/errors";
@@ -12,11 +12,13 @@ export default function StartScreen() {
     rememberApiKey,
     textModel,
     imageModel,
+    themeMode,
     setInputs,
     setApiKey,
     setRememberApiKey,
     setTextModel,
     setImageModel,
+    setThemeMode,
     setScreen,
     setGenerationStep,
     setGenerationError,
@@ -289,6 +291,36 @@ export default function StartScreen() {
                 />
                 <p className="text-xs text-neutral-600">
                   e.g. gpt-image-2, dall-e-3, dall-e-2
+                </p>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
+                  Theme Mode
+                </label>
+                <div className="flex gap-2">
+                  {(
+                    [
+                      ["light", "Light", Sun],
+                      ["dark", "Dark", Moon],
+                      ["auto", "Auto", Monitor],
+                    ] as const
+                  ).map(([mode, label, Icon]) => (
+                    <button
+                      key={mode}
+                      onClick={() => setThemeMode(mode)}
+                      className={`flex items-center gap-1.5 px-3 py-2 text-sm rounded-md border transition-colors flex-1 justify-center ${
+                        themeMode === mode
+                          ? "bg-red-600/20 border-red-500/50 text-white"
+                          : "bg-neutral-900 border-neutral-800 text-neutral-400 hover:text-neutral-200"
+                      }`}
+                    >
+                      <Icon className="w-4 h-4" />
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-xs text-neutral-600">
+                  Default mode for preview and Flutter export.
                 </p>
               </div>
             </div>
